@@ -11,6 +11,87 @@
 
     <main>
       <div id="board"></div>
+
+      <!-- edit todo modal -->
+      <div id="todoModal" class="edit-modal-ctn">
+        <div class="edit-form-ctn">
+          <form action="" data-testid="test-todo-edit-form" class="form-ctn">
+            <!-- cancel button -->
+            <button
+              type="button"
+              id="cancelBtn"
+              data-testid="test-todo-cancel-button"
+              class="cancel-edit"
+            >
+              Cancel
+            </button>
+
+            <!-- edit title -->
+            <div class="input-ctn">
+              <label for="editTitle">Title</label>
+              <input
+                type="text"
+                data-testid="test-todo-edit-title-input"
+                class="edit-title"
+                name="editTitle"
+                id="editTitle"
+              />
+            </div>
+
+            <!-- edit description -->
+            <div class="input-ctn">
+              <label for="description">Description</label>
+              <textarea
+                data-testid="test-todo-edit-description-input"
+                class="edit-description"
+                name="description"
+                id="description"
+                placeholder="Edit todo..."
+                cols="30"
+                rows="10"
+              ></textarea>
+            </div>
+
+            <div class="edit-ctn">
+              <!-- priority -->
+              <div class="input-ctn-1">
+                <label for="priority">Priority</label>
+                <select
+                  data-testid="test-todo-edit-priority-select"
+                  class="edit-priority"
+                  name="priority"
+                  id="priority"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
+              <!-- due date -->
+              <div class="input-ctn-1">
+                <label for="dueDate">Due Date</label>
+                <input
+                  type="date"
+                  data-testid="test-todo-edit-due-date-input"
+                  class="edit-date"
+                  name="dueDate"
+                  id="dueDate"
+                />
+              </div>
+            </div>
+
+            <!-- submit button -->
+            <button
+              type="button"
+              data-testid="test-todo-save-button"
+              class="submit-edit"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+      </div>
     </main>
 
     <script src="index.js"></script>

@@ -5,8 +5,8 @@ const todos = [
     description:
       "Create wireframes and high-fidelity screens for the new marketing landing page.",
     priority: "High",
-    status: "In Progress",
-    dueDate: "2026-04-20",
+    status: "in-progress",
+    dueDate: "2026-04-15",
     tags: ["work", "design", "urgent"],
     completed: false,
   },
@@ -16,7 +16,7 @@ const todos = [
     description:
       "The hamburger menu doesn't close after tapping a link on iOS Safari.",
     priority: "High",
-    status: "In Progress",
+    status: "in-progress",
     dueDate: "2026-04-13",
     tags: ["work", "urgent"],
     completed: false,
@@ -27,7 +27,7 @@ const todos = [
     description:
       "Cover login, logout, token refresh, and session expiry edge cases.",
     priority: "Medium",
-    status: "Pending",
+    status: "pending",
     dueDate: "2026-04-19",
     tags: ["work", "testing"],
     completed: false,
@@ -38,7 +38,7 @@ const todos = [
     description:
       "Add setup instructions, environment variables, and deployment steps.",
     priority: "Low",
-    status: "Pending",
+    status: "pending",
     dueDate: "2026-04-22",
     tags: ["docs"],
     completed: false,
@@ -49,7 +49,7 @@ const todos = [
     description:
       "Check the new checkout flow implementation and leave feedback.",
     priority: "Medium",
-    status: "Pending",
+    status: "pending",
     dueDate: "2026-04-14",
     tags: ["work", "review"],
     completed: false,
@@ -60,7 +60,7 @@ const todos = [
     description:
       "Configure GitHub Actions for automated testing and deployment to staging.",
     priority: "Medium",
-    status: "In Progress",
+    status: "in-progress",
     dueDate: "2026-04-17",
     tags: ["work", "devops"],
     completed: false,
@@ -71,7 +71,7 @@ const todos = [
     description:
       "Summarise wins, blockers, and action items from the last two-week sprint.",
     priority: "Low",
-    status: "Done",
+    status: "done",
     dueDate: "2026-04-10",
     tags: ["work", "planning"],
     completed: true,
@@ -82,8 +82,19 @@ const todos = [
     description:
       "Move all tables from SQLite to Postgres and update the ORM config.",
     priority: "High",
-    status: "Pending",
+    status: "pending",
     dueDate: "2026-04-11",
+    tags: ["work", "urgent", "backend"],
+    completed: false,
+  },
+  {
+    id: "todo-9",
+    title: "Migrate database to PostgreSQL",
+    description:
+      "Move all tables from SQLite to Postgres and update the ORM config.",
+    priority: "High",
+    status: "pending",
+    dueDate: "2026-04-16",
     tags: ["work", "urgent", "backend"],
     completed: false,
   },
@@ -103,12 +114,27 @@ const formatDueDate = (dateString) => {
   return `Due ${formatted}`;
 };
 
+const formatStatus = (status) => {
+  switch (status) {
+    case "in-progress":
+      return "In progress";
+    case "pending":
+      return "Pending";
+    case "done":
+      return "Done";
+    default:
+      return status;
+  }
+};
+
+const isOverdue = (dateString) => new Date() > toMidnight(dateString);
+
 // document.getElementById("test").innerHTML = `${formatDueDate("2026-02-18")}`;
 
 // every due time is treated as a new day and would be calculated based on the hour left to the due date
 const toMidnight = (dateString) => {
   const date = new Date(dateString);
-  date.setHours(0, 0, 0, 0);
+  date.setHours(23, 59, 59, 999);
   return date;
 };
 
@@ -154,17 +180,45 @@ function card(todo) {
   article.innerHTML = `
     <div class="task-title">
         <p data-testid="test-todo-title" class="title">${todo.title}</p>
-        <p data-testid="test-todo-priority" class="priority" aria-label="Priority: ${todo.priority}">${todo.priority}</p>
+        <div data-testid="test-todo-priority-indicator" class="priority-indicator priority-${todo.priority.toLowerCase()}">
+          <p data-testid="test-todo-priority" class="priority" aria-label="Priority: ${todo.priority}">${todo.priority}</p>
+        </div>
     </div>
 
     <!-- description -->
-    <p data-testid="test-todo-description" class="description">
+    <div id="collapsible-${todo.id}" data-testid="test-todo-collapsible-section" class="description-ctn">
+      <p data-testid="test-todo-description" class="description ${todo.description.length > 40 ? "collapsed-description" : ""}">
         ${todo.description}
-    </p>
+      </p>
+      ${
+        todo.description.length > 40
+          ? `<button
+            type="button"
+            data-testid="test-todo-expand-toggle"
+            class="toggle-btn"
+            aria-expanded="false"
+          >
+            Show more
+          </button>`
+          : ""
+      }
+    </div>
 
     <!-- status -->
-    <p class="status">Status: <span data-testid="test-todo-status" aria-label="Status: ${todo.status}">${todo.status}</span></p>
-
+    <div class="status-ctn">
+      <p class="status">Status: <span data-testid="test-todo-status" aria-label="Status: ${formatStatus(todo.status)}">${formatStatus(todo.status)}</span></p>
+      <select
+        data-testid="test-todo-status-control"
+        name="status"
+        class="status-control"
+        aria-label="Change status for '${todo.title}'"
+      >
+        <option value="pending" ${todo.status === "pending" ? "selected" : ""}>Pending</option>
+        <option value="in-progress" ${todo.status === "in-progress" ? "selected" : ""}>In progress</option>
+        <option value="done" ${todo.status === "done" ? "selected" : ""}>Done</option>
+      </select>
+    </div>
+    
     <hr />
 
     <!-- due date -->
@@ -172,9 +226,12 @@ function card(todo) {
         <p data-testid="test-todo-due-date" class="due-date">
          ${formatDueDate(todo.dueDate)}
         </p>
-        <p data-testid="test-todo-time-remaining" class="due-time" aria-live="polite">
-         ${getDueTime(todo.dueDate)}
-        </p>
+        <div class="time-ctn">
+          ${isOverdue(todo.dueDate) && !todo.completed ? `<span data-testid="test-todo-overdue-indicator" class="overdue-badge" aria-label="Overdue" title="Overdue"></span>` : ""}
+          <p data-testid="test-todo-time-remaining" class="due-time ${isOverdue(todo.dueDate) && !todo.completed ? "overdue" : ""}" aria-live="polite">
+           ${todo.completed ? "Completed" : getDueTime(todo.dueDate)}
+          </p>
+        </div>
     </div>
 
     <!-- category -->
@@ -204,31 +261,86 @@ function card(todo) {
     </div>
     `;
 
-  // checkbox toggle
+  const statusControl = article.querySelector(
+    "[data-testid='test-todo-status-control']",
+  );
   const checkbox = article.querySelector(
     "[data-testid='test-todo-complete-toggle']",
   );
   const todoStatus = article.querySelector("[data-testid='test-todo-status']");
   const todoTitle = article.querySelector("[data-testid='test-todo-title']");
+  // const todoPriorityIndicator = article.querySelector(
+  //   "[data-testid='test-todo-priority-indicator']",
+  // );
+  // const todoPriority = article.querySelector(
+  //   "[data-testid='test-todo-priority']",
+  // );
+  const toggleButton = article.querySelector(
+    "[data-testid='test-todo-expand-toggle']",
+  );
+
+  const description = article.querySelector(
+    "[data-testid='test-todo-description']",
+  );
+
+  const timeLeft = article.querySelector(
+    "[data-testid='test-todo-time-remaining']",
+  );
+  // const editBtn = article.querySelector(
+  //   "[data-testid='test-todo-edit-button']",
+  // );
+  const editTodo = article.querySelector(
+    "[data-testid='test-todo-edit-button']",
+  );
 
   // apply initial completed state
   if (todo.completed) {
     todoTitle.style.textDecoration = "line-through";
   }
 
+  // status control
+  statusControl.addEventListener("change", () => {
+    const selected = statusControl.value;
+    const done = selected === "done";
+    todoStatus.innerHTML = formatStatus(statusControl.value);
+    article.classList.toggle("is-done", done);
+    checkbox.checked = done;
+    todoTitle.style.textDecoration = done ? "line-through" : "";
+    timeLeft.textContent = done ? "Completed" : getDueTime(todo.dueDate);
+  });
+
+  // checkbox toggle
   checkbox.addEventListener("change", () => {
     const done = checkbox.checked;
     article.classList.toggle("is-done", done);
-    todoStatus.textContent = `${done ? "Done" : todo.status}`;
+    statusControl.value = done ? "done" : "pending";
+    todoStatus.innerHTML = formatStatus(statusControl.value);
     todoTitle.style.textDecoration = done ? "line-through" : "";
+    timeLeft.textContent = done ? "Completed" : getDueTime(todo.dueDate);
   });
 
   // edit
-  article
-    .querySelector("[data-testid='test-todo-edit-button']")
-    .addEventListener("click", () => {
-      console.log("Edit clicked:");
-    });
+  editTodo.addEventListener("click", () => {
+    document.querySelector("[data-testid='test-todo-edit-title-input']").value =
+      todo.title;
+    document.querySelector(
+      "[data-testid='test-todo-edit-description-input']",
+    ).value = todo.description;
+    document.querySelector(
+      "[data-testid='test-todo-edit-priority-select']",
+    ).value = todo.priority.toLowerCase();
+    document.querySelector(
+      "[data-testid='test-todo-edit-due-date-input']",
+    ).value = todo.dueDate;
+
+    // console.log("Edit clicked:");
+    todoModal.dataset.activeTodoId = todo.id;
+    todoModal.style.display = "flex";
+
+    document
+      .querySelector("[data-testid='test-todo-edit-title-input']")
+      .focus();
+  });
 
   // delete
   article
@@ -236,6 +348,16 @@ function card(todo) {
     .addEventListener("click", () => {
       alert("Delete clicked");
     });
+
+  // toggle description
+  if (toggleButton) {
+    toggleButton.addEventListener("click", () => {
+      const isExpanded = toggleButton.getAttribute("aria-expanded") === "true";
+      description.classList.toggle("collapsed-description", isExpanded);
+      toggleButton.setAttribute("aria-expanded", !isExpanded);
+      toggleButton.textContent = isExpanded ? "Show more" : "Show less";
+    });
+  }
 
   return article;
 }
@@ -251,11 +373,128 @@ setInterval(() => {
       const checkbox = card.querySelector(
         "[data-testid='test-todo-complete-toggle']",
       );
-      if (!checkbox.checked) {
-        const timeLeft = card.querySelector(
-          "[data-testid='test-todo-time-remaining']",
-        );
-        timeLeft.textContent = getDueTime(todos[i].dueDate);
-      }
+      if (checkbox.checked) return;
+
+      const timeLeft = card.querySelector(
+        "[data-testid='test-todo-time-remaining']",
+      );
+      timeLeft.textContent = getDueTime(todos[i].dueDate);
     });
-}, 60000);
+}, 30000);
+
+// edit
+const todoModal = document.querySelector("#todoModal");
+const closeModal = document.querySelector("#cancelBtn");
+
+function returnFocusToEditButton() {
+  const activeId = todoModal.dataset.activeTodoId;
+  if (!activeId) return;
+  const activeCard = document
+    .querySelector(`#complete-${activeId}`)
+    ?.closest("[data-testid='test-todo-card']");
+  activeCard?.querySelector("[data-testid='test-todo-edit-button']")?.focus();
+}
+
+closeModal.addEventListener("click", () => {
+  todoModal.style.display = "none";
+  returnFocusToEditButton();
+  // console.log("fire");
+});
+
+window.addEventListener("click", (event) => {
+  if (event.target == todoModal) {
+    todoModal.style.display = "none";
+    returnFocusToEditButton();
+  }
+});
+
+const saveBtn = document.querySelector("[data-testid='test-todo-save-button']");
+
+saveBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  const activeId = todoModal.dataset.activeTodoId;
+  if (!activeId) return;
+
+  const activeCard = document
+    .querySelector(`#complete-${activeId}`)
+    ?.closest("[data-testid='test-todo-card']");
+  if (!activeCard) return;
+
+  const newTitle = document
+    .querySelector("[data-testid='test-todo-edit-title-input']")
+    .value.trim();
+  const newDesc = document
+    .querySelector("[data-testid='test-todo-edit-description-input']")
+    .value.trim();
+  const newPriority = document.querySelector(
+    "[data-testid='test-todo-edit-priority-select']",
+  ).value;
+  const newDate = document.querySelector(
+    "[data-testid='test-todo-edit-due-date-input']",
+  ).value;
+
+  if (!newTitle) return;
+
+  // update elements
+  activeCard.querySelector("[data-testid='test-todo-title']").textContent =
+    newTitle;
+  activeCard.querySelector(
+    "[data-testid='test-todo-description']",
+  ).textContent = newDesc;
+  activeCard.querySelector("[data-testid='test-todo-due-date']").textContent =
+    formatDueDate(newDate);
+
+  // update time remaining only if card is not done
+  const cb = activeCard.querySelector(
+    "[data-testid='test-todo-complete-toggle']",
+  );
+  if (!cb.checked) {
+    activeCard.querySelector(
+      "[data-testid='test-todo-time-remaining']",
+    ).textContent = getDueTime(newDate);
+  }
+
+  // update priority indicator class and label
+  const indicator = activeCard.querySelector(
+    "[data-testid='test-todo-priority-indicator']",
+  );
+  indicator.className = `priority-indicator priority-${newPriority}`;
+  activeCard.querySelector("[data-testid='test-todo-priority']").textContent =
+    newPriority.charAt(0).toUpperCase() + newPriority.slice(1);
+
+  // sync todos array so setInterval keeps using the updated dueDate
+  const todoIndex = todos.findIndex((t) => t.id === activeId);
+  if (todoIndex !== -1) {
+    todos[todoIndex].title = newTitle;
+    todos[todoIndex].description = newDesc;
+    todos[todoIndex].priority = newPriority;
+    todos[todoIndex].dueDate = newDate;
+  }
+
+  todoModal.style.display = "none";
+  returnFocusToEditButton();
+});
+
+todoModal.addEventListener("keydown", (e) => {
+  if (e.key !== "Tab") return;
+
+  const focusable = todoModal.querySelectorAll(
+    "button, input, textarea, select, [tabindex]:not([tabindex='-1'])",
+  );
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (e.shiftKey) {
+    if (document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    }
+  } else {
+    if (document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+});
