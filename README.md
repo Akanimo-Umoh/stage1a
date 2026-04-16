@@ -9,6 +9,7 @@
 - Clicking the Edit button opens a modal form pre-populated with the card's current values
 - Save updates the card in place without a page reload
 - Cancel closes the modal and restores the previous values
+- Pressing `Escape` closes the modal and returns focus to the Edit button
 - Focus returns to the Edit button after the modal closes
 - Tab key is trapped inside the modal while it is open
 - Pressing Enter inside any input field triggers the save action
