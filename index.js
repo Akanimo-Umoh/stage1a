@@ -485,7 +485,13 @@ saveBtn.addEventListener("click", (e) => {
 });
 
 todoModal.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    todoModal.style.display = "none";
+    returnFocusToEditButton();
+  }
+
   if (e.key !== "Tab") return;
+
 
   const focusable = todoModal.querySelectorAll(
     "button, input, textarea, select, [tabindex]:not([tabindex='-1'])",
