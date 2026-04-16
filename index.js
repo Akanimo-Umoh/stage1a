@@ -197,6 +197,7 @@ function card(todo) {
             data-testid="test-todo-expand-toggle"
             class="toggle-btn"
             aria-expanded="false"
+            aria-controls="collapsible-${todo.id}"
           >
             Show more
           </button>`
@@ -322,16 +323,18 @@ function card(todo) {
   // edit
   editTodo.addEventListener("click", () => {
     document.querySelector("[data-testid='test-todo-edit-title-input']").value =
-      todo.title;
+      todoTitle.textContent;
     document.querySelector(
       "[data-testid='test-todo-edit-description-input']",
-    ).value = todo.description;
+    ).value = description.textContent.trim();
     document.querySelector(
       "[data-testid='test-todo-edit-priority-select']",
-    ).value = todo.priority.toLowerCase();
+    ).value = article
+      .querySelector("[data-testid='test-todo-priority']")
+      .textContent.toLowerCase();
     document.querySelector(
       "[data-testid='test-todo-edit-due-date-input']",
-    ).value = todo.dueDate;
+    ).value = article.dataset.dueDate;
 
     // console.log("Edit clicked:");
     todoModal.dataset.activeTodoId = todo.id;
@@ -359,6 +362,8 @@ function card(todo) {
     });
   }
 
+  article.dataset.dueDate = todo.dueDate;
+
   return article;
 }
 
@@ -369,7 +374,7 @@ todos.forEach((todo) => board.appendChild(card(todo)));
 setInterval(() => {
   document
     .querySelectorAll("[data-testid='test-todo-card']")
-    .forEach((card, i) => {
+    .forEach((card) => {
       const checkbox = card.querySelector(
         "[data-testid='test-todo-complete-toggle']",
       );
@@ -378,7 +383,7 @@ setInterval(() => {
       const timeLeft = card.querySelector(
         "[data-testid='test-todo-time-remaining']",
       );
-      timeLeft.textContent = getDueTime(todos[i].dueDate);
+      timeLeft.textContent = getDueTime(card.dataset.dueDate);
     });
 }, 30000);
 
@@ -449,6 +454,7 @@ saveBtn.addEventListener("click", (e) => {
   const cb = activeCard.querySelector(
     "[data-testid='test-todo-complete-toggle']",
   );
+
   if (!cb.checked) {
     activeCard.querySelector(
       "[data-testid='test-todo-time-remaining']",
@@ -471,6 +477,8 @@ saveBtn.addEventListener("click", (e) => {
     todos[todoIndex].priority = newPriority;
     todos[todoIndex].dueDate = newDate;
   }
+
+  activeCard.dataset.dueDate = newDate;
 
   todoModal.style.display = "none";
   returnFocusToEditButton();
